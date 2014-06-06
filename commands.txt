@@ -1,0 +1,36 @@
+#!/bin/bash
+
+
+start container with serf.
+SERF_ID=$(docker run -d --name serf_1 -p 7946 -p 7373 ud/serf /run.sh)
+
+start local serf agent (you need to have serf 0.5 agent in the path)
+serf agent &
+
+connect locat serf to the serf inside container
+serf join $(docker port $SERF_ID 7946)
+
+start mysql with serf  container
+MYSQL_ID=$(docker run -d --name mysql --link serf_1:serf_1 -p 3306 ud/mysql-serf /run.sh)
+
+find the random password to access mysql
+docker logs $MYSQL_ID
+
+set the DB password (found with the previous command)
+DB_PASSWORD=v6Dax72kQzQR
+
+create an empty DB in mysql
+mysql -uadmin -p${DB_PASSWORD} -h 0.0.0.0 -P $(docker port $MYSQL_ID 3306 | cut -d":" -f2) -e "create database wordpress;"
+
+start wordpress container that should connect to the mysql container. (the trick is in the file docker-wordpress-serf/start-apache2.sh that uses serf members for discovery of the mysql IP)
+WORDPRESS_ID=$(docker run -d --name wordpress --link serf_1:serf_1 -e="DB_PASSWORD=$DB_PASSWORD" -p 80 ud/wordpress-serf /run.sh)
+
+check that it works. you should get a proper configuration file
+curl --location http://$(docker port $WORDPRESS_ID 80)/
+
+another test
+curl --location http://$(docker port $WORDPRESS_ID 80)/readme.html
+
+start another WP container.
+docker run -d --name wordpress2 --link serf_1:serf_1 -e="DB_PASSWORD=$DB_PASSWORD" -p 80 ud/wordpress-serf /run.sh
+
