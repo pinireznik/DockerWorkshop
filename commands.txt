@@ -1,5 +1,4 @@
-#!/bin/bash
-
+from http://www.centurylinklabs.com/decentralizing-docker-how-to-use-serf-with-docker/
 
 start container with serf.
 SERF_ID=$(docker run -d --name serf_1 -p 7946 -p 7373 ud/serf /run.sh)
