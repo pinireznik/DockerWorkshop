@@ -1,7 +1,25 @@
+cleanup
+docker kill `docker ps -a -q`
+docker rm `docker ps -a -q`
+kill `pidof serf`
+
+
+
+install Docker
+https://docs.docker.com/installation/#installation
+use password "tcuser" if asked
+
+
 from http://www.centurylinklabs.com/decentralizing-docker-how-to-use-serf-with-docker/
 
 start container with serf.
 SERF_ID=$(docker run -d --name serf_1 -p 7946 -p 7373 ud/serf /run.sh)
+
+download and install serf
+wget dl.bintray.com/mitchellh/serf/0.5.0_linux_amd64.zip
+unzip 0.5.0_linux_amd64.zip 
+sudo mv serf /usr/bin/
+
 
 start local serf agent (you need to have serf 0.5 agent in the path)
 serf agent &
@@ -11,6 +29,11 @@ serf join $(docker port $SERF_ID 7946)
 
 start mysql with serf  container
 MYSQL_ID=$(docker run -d --name mysql --link serf_1:serf_1 -p 3306 ud/mysql-serf /run.sh)
+
+if running in boot2docker which doesn have mysql then we need to create a db inside container
+docker run -t -i --name mysql_client --link mysql:mysql -p 3306 ud/mysql-serf bash
+mysql -uadmin -pfnaXotILM4Jj -h $MYSQL_PORT_3306_TCP_ADDR -P 3306 -e "create database wordpress;"
+
 
 find the random password to access mysql
 docker logs $MYSQL_ID
