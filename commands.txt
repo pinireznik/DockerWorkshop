@@ -44,7 +44,7 @@ docker
     wait      Block until a container stops, then print its exit code
 
 docker run ubuntu ls
-docker run -i -t -name file -v `pwd`:/tmp/on_host -w `pwd` ubuntu bash
+docker run -i -t --name file -v `pwd`:/tmp/on_host -w `pwd` ubuntu bash
     touch /tmp/file_a.txt
     touch /tmp/on_host/file_b.txt
     exit
